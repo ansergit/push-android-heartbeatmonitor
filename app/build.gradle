@@ -17,7 +17,7 @@
 apply plugin: 'com.android.application'
 
 ext {
-    debugKeystorePath = System.getenv("PUSH_DEBUG_SIGNING_KEY") ?: new File(System.getProperty('user.home'), '.android').absolutePath + "/PCFPush.android.debug.keystore"
+    debugKeystorePath = System.getenv("PUSH_DEBUG_SIGNING_KEY") ?: new File(System.getProperty('user.home'), '.android').absolutePath + "/debug.keystore"
     println "Using debugKeystorePath: " + debugKeystorePath
 }
 
@@ -44,9 +44,9 @@ android {
             applicationId "io.pivotal.android.push.heartbeatmonitor"
         }
 
-        baidu {
-            applicationId "io.pivotal.android.push.heartbeatmonitor.baidu"
-        }
+//        baidu {
+//            applicationId "io.pivotal.android.push.heartbeatmonitor.baidu"
+//        }
     }
 
     buildTypes {
@@ -59,15 +59,21 @@ android {
 
 dependencies {
     fcmCompile pushFcmSdk
-    baiduCompile pushBaiduSdk
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.android.support:design:24.2.1'
+//    baiduCompile pushBaiduSdk
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
     compile 'com.jakewharton:butterknife:7.0.1'
-    compile 'com.google.guava:guava:18.0'
+    compile 'com.google.guava:guava:20.0'
     testCompile 'junit:junit:4.12'
+    compile 'com.android.support:support-annotations:25.3.1'
+    compile "com.google.android.gms:play-services-gcm:10.0.1"
+    compile "com.google.firebase:firebase-messaging:10.0.1"
+    compile "com.google.firebase:firebase-core:10.0.1"
 }
 
-if (!getGradle().getStartParameter().getTaskRequests()
-        .toString().contains("Baidu")) {
-    apply plugin: 'com.google.gms.google-services'
-}
+// if (!getGradle().getStartParameter().getTaskRequests()
+//         .toString().contains("Baidu")) {
+//     apply plugin: 'com.google.gms.google-services'
+// }
+
+apply plugin: 'com.google.gms.google-services'

@@ -123,9 +123,12 @@ public class MainActivity extends AppCompatActivity {
     final EditText serverUrlTextField = (EditText) view.findViewById(R.id.server_url);
     final EditText platformUuidTextField = (EditText) view.findViewById(R.id.platform_uuid);
     final EditText platformSecretTextField = (EditText) view.findViewById(R.id.platform_secret);
-    serverUrlTextField.setText(Preferences.getServiceUrl(this));
-    platformUuidTextField.setText(Preferences.getPlatformUuid(this));
-    platformSecretTextField.setText(Preferences.getPlatformSecret(this));
+    serverUrlTextField.setText("https://push-api.run-18.haas-59.pez.pivotal.io");
+    platformUuidTextField.setText("9ddc58af-9edf-49cc-9bf3-bf638e3d5581");
+    platformSecretTextField.setText("17e06efa-f323-4f1f-8890-3572cb1c9cc3");
+    // serverUrlTextField.setText(Preferences.getServiceUrl(this));
+    // platformUuidTextField.setText(Preferences.getPlatformUuid(this));
+    // platformSecretTextField.setText(Preferences.getPlatformSecret(this));
 
     alertDialog.setView(view);
     alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.OK),
@@ -293,6 +296,9 @@ public class MainActivity extends AppCompatActivity {
     final String serviceUrl = pushServiceInfo.getServiceUrl();
     final String platformUuid = pushServiceInfo.getPlatformUuid();
     final String platformSecret = pushServiceInfo.getPlatformSecret();
+    // final String serviceUrl = "https://push-api.run-18.haas-59.pez.pivotal.io";
+    // final String platformUuid = "9ddc58af-9edf-49cc-9bf3-bf638e3d5581";
+    // final String platformSecret = "17e06efa-f323-4f1f-8890-3572cb1c9cc3";
     final URI uri = URI.create(serviceUrl);
     textViews.get(2).setText(getString(R.string.monitoring, uri.toString()));
     textViews.get(3).setText(getString(R.string.monitor_platform_uuid, platformUuid));
