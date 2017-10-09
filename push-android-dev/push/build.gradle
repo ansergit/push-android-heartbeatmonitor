@@ -1,0 +1,226 @@
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+
+group = "io.pivotal.android"
+version = System.getenv("PUSH_SDK_VERSION") ?: "2.0.0"
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '25.0.0'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+    defaultConfig {
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionCode 8
+        versionName project.version
+        minSdkVersion 16
+        targetSdkVersion 24
+    }
+
+    publishNonDefault true
+
+    productFlavors {
+        fcm {}
+        baidu {}
+    }
+}
+
+configurations {
+    archives {
+        extendsFrom configurations.default
+    }
+}
+
+dependencies {
+    fcmCompile 'com.google.android.gms:play-services-location:9.4.0'
+    fcmCompile 'com.google.firebase:firebase-core:9.4.0'
+    fcmCompile 'com.google.firebase:firebase-messaging:9.4.0'
+    baiduCompile fileTree(include: ['*.jar'], dir: 'src/baidu/libs')
+    compile 'com.google.code.gson:gson:2.7'
+    compile 'com.android.support:support-annotations:25.3.0'
+    compile 'com.android.support:appcompat-v7:24.2.1'
+
+    androidTestCompile 'com.google.guava:guava:20.0'
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'org.mockito:mockito-core:1.10.19'
+    androidTestCompile 'com.crittercism.dexmaker:dexmaker:1.4'
+    androidTestCompile 'com.crittercism.dexmaker:dexmaker-mockito:1.4'
+    androidTestCompile 'com.crittercism.dexmaker:dexmaker-dx:1.4'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
+}
+
+afterEvaluate {
+    uploadArchives {
+        configuration = configurations.archives
+
+        repositories.mavenDeployer {
+
+            addFilter('fcmRelease') { artifact, file ->
+                artifact.attributes.classifier.equals("fcmRelease")
+            }
+            addFilter('baiduRelease') { artifact, file ->
+                artifact.attributes.classifier.equals("baiduRelease")
+            }
+
+            pom('fcmRelease') {
+                project {
+                    name 'Push client SDK for Android'
+                    packaging 'aar'
+                    description 'A comprehensive SDK for receiving and sending Push Notification through Pivotal Cloud Foundry\'s Push API'
+                    url 'https://github.com/cfmobile/push-android'
+                    artifactId project.archivesBaseName + "-fcm"
+
+                    licenses {
+                        license {
+                            // TODO - provide a more correct license file and URL
+                            name 'Pivotal Software License'
+                            url 'https://github.com/cfmobile/push-android/blob/master/LICENSE'
+                            distribution 'repo'
+                        }
+                    }
+
+                    scm {
+                        url 'https://github.com/cfmobile/push-android'
+                        connection 'scm:git:git@github.com/cfmobile/push-android.git'
+                        developerConnection 'scm:git:ssh://github.com:cfmobile/push-android.git'
+                    }
+
+                    developers {
+                        developer {
+                            id 'cf-push-notifications'
+                            name 'PCF Push Nofitications'
+                            email 'cf-push-notifications@poivotal.io'
+                        }
+                    }
+                }
+
+                withXml {
+                    def dependencies = asNode().appendNode('dependencies')
+                    configurations.getByName('_fcmReleaseCompile').getResolvedConfiguration().getFirstLevelModuleDependencies().each { dp ->
+                        def dependency = dependencies.appendNode('dependency')
+                        dependency.appendNode('groupId', dp.moduleGroup)
+                        dependency.appendNode('artifactId', dp.moduleName)
+                        dependency.appendNode('version', dp.moduleVersion)
+                    }
+                }
+            }
+
+            pom('baiduRelease') {
+                project {
+                    name 'Push client SDK for Android'
+                    packaging 'aar'
+                    description 'A comprehensive SDK for receiving and sending Push Notification through Pivotal Cloud Foundry\'s Push API'
+                    url 'https://github.com/cfmobile/push-android'
+                    artifactId project.archivesBaseName + "-baidu"
+
+                    licenses {
+                        license {
+                            // TODO - provide a more correct license file and URL
+                            name 'Pivotal Software License'
+                            url 'https://github.com/cfmobile/push-android/blob/master/LICENSE'
+                            distribution 'repo'
+                        }
+                    }
+
+                    scm {
+                        url 'https://github.com/cfmobile/push-android'
+                        connection 'scm:git:git@github.com/cfmobile/push-android.git'
+                        developerConnection 'scm:git:ssh://github.com:cfmobile/push-android.git'
+                    }
+
+                    developers {
+                        developer {
+                            id 'cf-push-notifications'
+                            name 'PCF Push Nofitications'
+                            email 'cf-push-notifications@poivotal.io'
+                        }
+                    }
+                }
+
+                withXml {
+                    def dependencies = asNode().appendNode('dependencies')
+                    configurations.getByName('_baiduReleaseCompile').getResolvedConfiguration().getFirstLevelModuleDependencies().each { dp ->
+                        def dependency = dependencies.appendNode('dependency')
+                        dependency.appendNode('groupId', dp.moduleGroup)
+                        dependency.appendNode('artifactId', dp.moduleName)
+                        dependency.appendNode('version', dp.moduleVersion)
+                    }
+                }
+            }
+
+            // Publishes to local repository
+            repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+        }
+
+        // Rename artifacts
+        // Artifacts placed in maven repository contain classifer for build variant, which needs to be removed
+        doLast {
+            def repository = System.getProperty('user.home') + '/.m2/repository/' + project.group.replace('.', '/')
+            new File(repository).listFiles().each { f ->
+                def base = new File(f.absolutePath + "/" + project.version)
+                base.listFiles().each { o ->
+                    if (o.path.contains(".aar")) {
+                        def newname = o.absolutePath.replaceAll("-[a-z]+Release", "")
+                        println "Renaming " + o.absolutePath + " to " + newname
+                        o.renameTo(new File(newname))
+                    }
+                }
+            }
+        }
+    }
+}
+
+task javadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+    classpath += fileTree(dir: "$buildDir/intermediates/exploded-aar/", include:"**/classes.jar")
+    options {
+        links "http://docs.oracle.com/javase/8/docs/api/"
+        linksOffline "http://d.android.com/reference","${android.sdkDirectory}/docs/reference"
+    }
+    exclude '**/BuildConfig.java'
+    exclude '**/R.java'
+}
+
+// Creating sources with comments
+
+def sourcesBasePath = System.getProperty('user.home') + '/.m2/repository/' + project.group.replace('.', '/') + "/%%%/" + version
+task androidFcmSourcesJar(type: Jar) {
+    classifier = 'sources'
+    baseName = 'push-fcm'
+    from android.sourceSets.fcm.java.srcDirs
+    destinationDir = file(sourcesBasePath.replace("%%%", "push-fcm"))
+}
+
+task androidBaiduSourcesJar(type: Jar) {
+    classifier = 'sources'
+    baseName = 'push-baidu'
+    from android.sourceSets.baidu.java.srcDirs
+    destinationDir = file(file(sourcesBasePath.replace("%%%", "push-baidu")))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives androidBaiduSourcesJar
+    archives androidFcmSourcesJar
+}
+
+task printVersion {
+    doLast {
+        println "My version is: " + project.version
+    }
+}
