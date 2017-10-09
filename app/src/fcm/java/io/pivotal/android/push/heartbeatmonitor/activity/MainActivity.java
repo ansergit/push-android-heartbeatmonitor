@@ -127,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
     platformUuidTextField.setText("9ddc58af-9edf-49cc-9bf3-bf638e3d5581");
     platformSecretTextField.setText("17e06efa-f323-4f1f-8890-3572cb1c9cc3");
     // serverUrlTextField.setText(Preferences.getServiceUrl(this));
-    // platformUuidTextField.setText(Preferences.getPlatformUuid(this));
-    // platformSecretTextField.setText(Preferences.getPlatformSecret(this));
+    //platformUuidTextField.setText(Preferences.getPlatformUuid(this));
+    //platformSecretTextField.setText(Preferences.getPlatformSecret(this));
 
     alertDialog.setView(view);
     alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.OK),
